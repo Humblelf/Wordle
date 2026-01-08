@@ -4,7 +4,6 @@ public class Data
     {
         System.out.println("hello");
         System.out.println("hello");
+        int a = 0;
     }
-
-
 }
