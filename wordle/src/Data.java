@@ -4,7 +4,7 @@ public class Data
     {
         System.out.println("hello");
         System.out.println("hello");
-        int a = 0;
-        String c="haha";
+        int a=0;
+        String d="hello";
     }
 }
