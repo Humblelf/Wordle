@@ -7,5 +7,6 @@ public class Data
         int a=0;
         String d="hello";
         double mm=1.0;
+        double ddd=3.0;
     }
 }
