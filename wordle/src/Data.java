@@ -1,5 +1,9 @@
 public class Data
 {
-    public Data(){}
+    public Data()
+    {
+        System.out.println("hello");
+    }
+
 
 }
