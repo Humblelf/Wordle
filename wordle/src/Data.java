@@ -6,5 +6,6 @@ public class Data
         System.out.println("hello");
         int a=0;
         String d="hello";
+        double ddd=3.0;
     }
 }
