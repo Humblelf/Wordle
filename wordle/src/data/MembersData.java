@@ -1,6 +1,5 @@
 package data;
 
-import javax.naming.Name;
 import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -14,14 +13,13 @@ import java.time.format.DateTimeFormatter;
  * ………………
 */
 
-public final class MemberData
+public final class MembersData
 {
     private static final String path = "jdbc:sqlite:src/data/Member.db";
     private static Connection connection = getConnection();
 
-    private MemberData()
+    private MembersData()
     {
-        createTable();
     }
 
 
@@ -39,7 +37,7 @@ public final class MemberData
     }
 
 
-    private static void createTable()
+    public static void createMembersDataTable()
     {
         String splCreate = "CREATE TABLE IF NOT EXITS memberData (" +
                 "ID TEXT PRIMARY KEY AUTOINCREMENT," +
@@ -86,6 +84,51 @@ public final class MemberData
         catch (SQLException e)
         {
             throw new RuntimeException("注册用户失败: " + e.getMessage(), e);
+        }
+    }
+
+
+    public static void alterData(String currentId, String alterWhat, String newData)
+    {
+        String sqlAlter = String.format("UPDATE memberData SET %s = ? WHERE ID = ?", alterWhat);
+        try(PreparedStatement stmtAlter = connection.prepareStatement(sqlAlter))
+        {
+            stmtAlter.setString(1,newData);
+            stmtAlter.setString(2,currentId);
+            stmtAlter.execute();
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("修改失败: " + e.getMessage(), e);
+        }
+    }
+
+
+    public static String getData(String id, String getWhat)
+    {
+        String sqlGet = String.format("SELECT %s FROM memberData WHERE ID = ?", getWhat);
+        try(PreparedStatement stmtGet = connection.prepareStatement(sqlGet))
+        {
+            stmtGet.setString(1,id);
+            return stmtGet.executeQuery().getString(getWhat);
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("获取数据失败: " + e.getMessage(), e);
+        }
+    }
+
+    public static void deleteData(String id)
+    {
+        String sqlDelete = "DELETE FROM memberData WHERE ID = ?";
+        try(PreparedStatement stmtDelete = connection.prepareStatement(sqlDelete))
+        {
+            stmtDelete.setString(1,id);
+            stmtDelete.execute();
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("删除数据失败: " + e.getMessage(), e);
         }
     }
 }
