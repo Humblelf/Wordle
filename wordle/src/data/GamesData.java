@@ -11,8 +11,8 @@ import java.sql.*;
 
 public class GamesData
 {
-    private static final String path = "jdbc:sqlite:src/data/GamesData.db";
-    private static Connection connection;
+    private static final String path = "jdbc:sqlite:wordle/src/data/GamesData.db";
+    private static Connection connection = getConnection();
 
 
     private GamesData(){}
@@ -32,9 +32,9 @@ public class GamesData
 
     public static void createGamesDataTable()
     {
-        String sqlCreate = "CREATE TABLE IF NOT EXITS GamesData (" +
-                "Name TEXT NOT NULL UNIQUE" +
-                "Result TEXT NOT NULL" ;
+        String sqlCreate = "CREATE TABLE IF NOT EXISTS GamesData (" +
+                "Name TEXT NOT NULL UNIQUE," +
+                "Result TEXT NOT NULL )" ;
         try(PreparedStatement stmtCreate = connection.prepareStatement(sqlCreate))
         {
             stmtCreate.execute();

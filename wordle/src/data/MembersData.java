@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 
 public final class MembersData
 {
-    private static final String path = "jdbc:sqlite:src/data/Member.db";
+    private static final String path = "jdbc:sqlite:wordle/src/data/Member.db";
     private static Connection connection = getConnection();
 
     private MembersData()
@@ -39,14 +39,14 @@ public final class MembersData
 
     public static void createMembersDataTable()
     {
-        String splCreate = "CREATE TABLE IF NOT EXITS memberData (" +
-                "ID TEXT PRIMARY KEY AUTOINCREMENT," +
-                "Name TEXT NOT NULL UNIQUE (" +
+        String splCreate = "CREATE TABLE IF NOT EXISTS memberData (" +
+                "ID TEXT PRIMARY KEY, " +
+                "Name TEXT NOT NULL UNIQUE, " +
                 "Birthday TEXT NOT NULL," +
                 "Password TEXT NOT NULL," +
                 "SecurityQuestion TEXT NOT NULL," +
                 "SecurityAnswer TEXT NOT NULL," +
-                "RegisterTime TEXT NOT NULL UNIQUE (" ;
+                "RegisterTime TEXT NOT NULL UNIQUE )" ;
 
         try (PreparedStatement stmtCreate = connection.prepareStatement(splCreate))
         {
