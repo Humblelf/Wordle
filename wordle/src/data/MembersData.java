@@ -3,6 +3,7 @@ package data;
 import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 /**该类使用 SOLite
  * 用于储存 :
@@ -15,7 +16,7 @@ import java.time.format.DateTimeFormatter;
 
 public final class MembersData
 {
-    private static final String path = "jdbc:sqlite:wordle/src/data/Member.db";
+    private static final String path = "jdbc:sqlite:wordle/src/data/memberData.db";
     private static Connection connection = getConnection();
 
     private MembersData()
@@ -42,7 +43,6 @@ public final class MembersData
         String splCreate = "CREATE TABLE IF NOT EXISTS memberData (" +
                 "ID TEXT PRIMARY KEY, " +
                 "Name TEXT NOT NULL UNIQUE, " +
-                "Birthday TEXT NOT NULL," +
                 "Password TEXT NOT NULL," +
                 "SecurityQuestion TEXT NOT NULL," +
                 "SecurityAnswer TEXT NOT NULL," +
@@ -59,25 +59,26 @@ public final class MembersData
     }
 
 
-    public static void insertData(String name ,String birthday,String password,String securityQuestion,String securityAnswer)
+    public static void insertData(String name, String password,String securityQuestion,String securityAnswer)
     {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        String registerTime = dtf.format(LocalDate.now());
+        String registerTime = dtf.format(LocalDateTime.now());
 
         DateTimeFormatter dtf1 = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
         String registerTime1 =  dtf1.format(LocalDateTime.now());
-        String id = registerTime1 + birthday;
+        Random rand = new Random();
+        int num = rand.nextInt(10);
+        String id = registerTime1 + num;
 
-        String sqlInsert = "INSERT INTO memberData (ID, Name, Birthday, Password, SecurityQuestion, SecurityAnswer, RegisterTime) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sqlInsert = "INSERT INTO memberData (ID, Name, Password, SecurityQuestion, SecurityAnswer, RegisterTime) VALUES (?,  ?, ?, ?, ?, ?)";
         try (PreparedStatement stmtInsert = connection.prepareStatement(sqlInsert))
         {
-            stmtInsert.setString(1,id);
+            stmtInsert.setString(1, id);
             stmtInsert.setString(2, name);
-            stmtInsert.setString(3,birthday);
-            stmtInsert.setString(4,password);
-            stmtInsert.setString(5,securityQuestion);
-            stmtInsert.setString(6,securityAnswer);
-            stmtInsert.setString(7,registerTime);
+            stmtInsert.setString(3, password);
+            stmtInsert.setString(4, securityQuestion);
+            stmtInsert.setString(5, securityAnswer);
+            stmtInsert.setString(6, registerTime);
 
             stmtInsert.execute();
         }
@@ -104,12 +105,12 @@ public final class MembersData
     }
 
 
-    public static String getData(String id, String getWhat)
+    public static String getDataByName(String name, String getWhat)
     {
-        String sqlGet = String.format("SELECT %s FROM memberData WHERE ID = ?", getWhat);
+        String sqlGet = String.format("SELECT %s FROM memberData WHERE Name = ?", getWhat);
         try(PreparedStatement stmtGet = connection.prepareStatement(sqlGet))
         {
-            stmtGet.setString(1,id);
+            stmtGet.setString(1,name);
             return stmtGet.executeQuery().getString(getWhat);
         }
         catch(SQLException e)
@@ -117,6 +118,22 @@ public final class MembersData
             throw new RuntimeException("获取数据失败: " + e.getMessage(), e);
         }
     }
+
+    public static String getDataByID(String ID, String getWhat)
+    {
+        String sqlGet = String.format("SELECT %s FROM memberData WHERE ID = ?", getWhat);
+        try(PreparedStatement stmtGet = connection.prepareStatement(sqlGet))
+        {
+            stmtGet.setString(1,ID);
+            return stmtGet.executeQuery().getString(getWhat);
+        }
+        catch(SQLException e)
+        {
+            throw new RuntimeException("获取数据失败: " + e.getMessage(), e);
+        }
+    }
+
+
 
     public static void deleteData(String id)
     {
