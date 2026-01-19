@@ -13,7 +13,6 @@ public class GameEntrance
     public static void main(String[] args)
     {
 
-        new LogIn().setVisible(true);
-        //System.out.println(MembersData.getDataByName("卢理政","Password"));
+        new Start().setVisible(true);
     }
 }
