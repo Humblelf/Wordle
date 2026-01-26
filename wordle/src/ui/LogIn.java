@@ -60,7 +60,7 @@ public class LogIn extends JFrame
         {
            if (success())
            {
-               System.out.println("Login Success");
+               new GameFrame(5);
 
            }
         });
