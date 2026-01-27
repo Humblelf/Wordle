@@ -58,7 +58,7 @@ public class GameFrame extends JPanel implements KeyListener {
 
     private void loadWordList(){
         try {
-            File file = new File("totalWordList.txt");
+            File file = new File("wordle/src/resource/other/totalWordList.txt");
             BufferedReader reader = new BufferedReader(new FileReader(file));
 
             String word;
