@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,7 +27,8 @@ public class GameFrame extends JPanel implements KeyListener {
     private String guessWord;
     private int index = 0;
     private Timer messageTimer;
-    int[] guessTime;
+    protected int[] guessTime;
+    private boolean isAnimating = false;
 
     public GameFrame(int letterNumber){
         this.letterNumber = letterNumber;
@@ -47,6 +50,7 @@ public class GameFrame extends JPanel implements KeyListener {
         setBackground(Color.WHITE);
 
         setupUI();
+        repaint();
 
         // 设置焦点，以便接收键盘事件
         setFocusable(true);
@@ -54,6 +58,14 @@ public class GameFrame extends JPanel implements KeyListener {
 
         // 添加键盘监听器
         addKeyListener(this);
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e){
+                int x = (getWidth() - 200) / 2;
+                if (e.getX() >= x && e.getX() <= x + 200 && e.getY() >= 500 && e.getY() <= 550)
+                    startNewGame();
+            }
+        });
     }
 
     private void loadWordList(){
@@ -83,24 +95,29 @@ public class GameFrame extends JPanel implements KeyListener {
         letterLabel = new JLabel[6][letterNumber];
         for (int i = 0; i < 6; i++){
             JPanel rowPanel = new JPanel();
-            rowPanel.setLayout(null);          // 1. 绝对布局
+            rowPanel.setLayout(null);
             int rowWidth = letterNumber * LABEL_SIZE + (letterNumber - 1) * RECTANGLE_SPACE;
             rowPanel.setPreferredSize(new Dimension(rowWidth, LABEL_SIZE));
+            rowPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
             int x = 0;
             for (int j = 0; j < letterNumber; j++){
                 AnimatedLabel l = (AnimatedLabel) createLetterLabel("");
                 letterLabel[i][j] = l;
-                l.setLocation(x, 0);                    // 2. 手工定位
-                l.setSize(LABEL_SIZE, LABEL_SIZE);      // 3. 初始 60×60
+                l.setLocation(x, 0);
+                l.setSize(LABEL_SIZE, LABEL_SIZE);
                 rowPanel.add(l);
-                x += LABEL_SIZE + RECTANGLE_SPACE;      // 下一列 x 坐标
+                x += LABEL_SIZE + RECTANGLE_SPACE;
             }
             wordlePanel.add(rowPanel);
             wordlePanel.add(Box.createRigidArea(new Dimension(0, RECTANGLE_SPACE)));
         }
 
-        add(wordlePanel, BorderLayout.CENTER);
+        JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        wrapper.setOpaque(false);
+        wrapper.add(wordlePanel);
+
+        add(wrapper, BorderLayout.NORTH);
     }
 
     private JLabel createLetterLabel(String text){
@@ -115,9 +132,43 @@ public class GameFrame extends JPanel implements KeyListener {
         label.setMaximumSize(new Dimension(LABEL_SIZE, LABEL_SIZE));
 
         // 添加边框
-        label.setBorder(BorderFactory.createLineBorder(new Color(86, 87, 88), 2));
+        label.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2));
 
         return new AnimatedLabel(text);
+    }
+
+    private void drawButton(Graphics2D g){
+        int width = 200;
+        int height = 50;
+        int x = (getWidth() - 200) / 2;
+        int y = 500;
+
+        g.setColor(new Color(86, 171, 89));
+        g.fillRect(x, y, width, height);
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        String text = "NEW GAME";
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(text);
+        int textHeight = fm.getAscent();
+        g.drawString(text,
+                x + (width - textWidth) / 2,
+                y + (height + textHeight) / 2 - 2);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g){
+        super.paintComponent(g);
+        drawButton((Graphics2D) g);
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        int wordWidth = letterNumber * LABEL_SIZE + (letterNumber - 1) * RECTANGLE_SPACE + 40;
+        int height = 600;
+
+        return new Dimension(wordWidth, height);
     }
 
     @Override
@@ -128,6 +179,9 @@ public class GameFrame extends JPanel implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e){
+        if (isAnimating || gameEnd)
+            return;
+
         int keyCode = e.getKeyCode();
         char keyChar = e.getKeyChar();
 
@@ -169,8 +223,6 @@ public class GameFrame extends JPanel implements KeyListener {
                 currentCol = 0;
             }
         }
-
-        gameEnd();
     }
 
     private int[] judge(){
@@ -203,6 +255,8 @@ public class GameFrame extends JPanel implements KeyListener {
     }
 
     private void changeColor(int row, int index){
+        isAnimating = true;
+
         if (index < letterNumber){
             int[] array = judge();
             if (array[index] == -1)
@@ -220,8 +274,23 @@ public class GameFrame extends JPanel implements KeyListener {
                 changeColor( row, index + 1);
                 ((Timer) e.getSource()).stop();
             }).start();
-        }else if (guessWord.equals(answerWord))
-            gameEnd = true;
+        }else{
+            boolean win = false;
+
+            if (guessWord != null && guessWord.equals(answerWord)) {
+                gameEnd = true;
+                win = true;
+                guessTime[row]++;
+            }else if (row >= 5) {
+                gameEnd = true;
+                guessTime[6]++;
+            }
+
+            if (gameEnd){
+                new GameEndFrame(this, win);
+            }
+            isAnimating = false;
+        }
     }
 
     private void turnGreen(int row, int col){
@@ -284,20 +353,36 @@ public class GameFrame extends JPanel implements KeyListener {
         }).start();
     }
 
-    private void gameEnd(){
-        boolean win = false;
-        if (currentRow > 5) {
-            gameEnd = true;
-            guessTime[6]++;
-        }else if (guessWord != null && guessWord.equals(answerWord)) {
-            gameEnd = true;
-            win = true;
-            guessTime[currentRow - 1]++;
+    protected void startNewGame(){
+        if (index >= wordList.size()) {
+            index = 0;
+            Collections.shuffle(wordList);
         }
 
-        if (gameEnd){
-            GameEndFrame gameEndFrame = new GameEndFrame(this, win);
+        answerWord = wordList.get(index);
+        index++;
+        gameEnd = false;
+        isAnimating = false;
+        currentRow = 0;
+        currentCol = 0;
+        guessWord = null;
+
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < letterNumber; j++) {
+                JLabel label = letterLabel[i][j];
+                label.setText("");
+                label.setBackground(null);  // 恢复默认背景（透明）
+                label.setOpaque(true);      // 确保不透明设置正确
+                label.setForeground(Color.WHITE);  // 恢复默认文字颜色
+                label.setBorder(BorderFactory.createLineBorder(new Color(86, 87, 88), 2));
+            }
         }
+
+        System.out.println(answerWord);
+
+        // 重新获取焦点，确保键盘输入继续有效
+        requestFocusInWindow();
+        repaint();
     }
 
     /* 带放大/回弹动画的 JLabel */
@@ -360,4 +445,3 @@ public class GameFrame extends JPanel implements KeyListener {
         }
     }
 }
-

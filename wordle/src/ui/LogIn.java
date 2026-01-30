@@ -60,8 +60,14 @@ public class LogIn extends JFrame
         {
            if (success())
            {
-               new GameFrame(5);
-
+               this.dispose();
+               JFrame frame = new JFrame("WORDLE");
+               GameFrame gameFrame = new GameFrame(5);
+               frame.add(gameFrame);
+               frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+               frame.pack();
+               frame.setLocationRelativeTo(null);
+               frame.setVisible(true);
            }
         });
         panel.add(login);
