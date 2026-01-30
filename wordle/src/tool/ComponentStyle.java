@@ -53,6 +53,7 @@ public class ComponentStyle
         myTextField.setBorder(BorderFactory.createEmptyBorder(2, 10, 9, 10));
         myTextField.setOpaque(false);
         myTextField.setForeground(color);
+        myTextField.setCaretColor(Color.WHITE);
         myTextField.setLocation(x, y);
         myTextField.setSize(width, height);
         return myTextField;
@@ -68,6 +69,8 @@ public class ComponentStyle
         myPasswordField.setOpaque(false);
         myPasswordField.setSize(width, height);
         myPasswordField.setForeground(color);
+        myPasswordField.setCaretColor(Color.WHITE);
+
         return myPasswordField;
     }
 
